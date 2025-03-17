@@ -37,7 +37,7 @@ impl Supermarket {
     }
 
     fn load_inventory(filename: &str) -> Self {
-        let data = fs::read_to_string(filename).unwrap_orelse(|| "{}".to_string());
+        let data = fs::read_to_string(filename).unwrap_or_else(|| "{}".to_string());
         serde_json::from_str(&data).unwrap_orelse(|| Supermarket::new())
     }
 }
@@ -58,7 +58,7 @@ if let Some(item) = supermarket.inventory.get(id) {
             println!("Zadejte množství: ");
             let mut qty = String::new();
             io::stdin().read_line(&mut qty).unwrap();
-            let qty: f64 = qty.trim().parse().unwrap_or(1.0);
+            let qty: f64 = qty.trim().parse().unwrap_or_else(1.0);
             
             let price = qty * item.price_per_unit;
             total_price += price;
