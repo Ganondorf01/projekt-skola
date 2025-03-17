@@ -23,7 +23,7 @@ impl Supermarket {
             inventory: HashMap::new(),
         }
     }
-
+}
 if let Some(item) = supermarket.inventory.get(id) {
             println!("Zadejte množství: ");
             let mut qty = String::new();
@@ -33,12 +33,12 @@ if let Some(item) = supermarket.inventory.get(id) {
             let price = qty * item.price_per_unit;
             total_price += price;
             println!("Přidáno: {} x {} = {:.2} Kč", qty, item.name, price);
-        } else {
+        }
+    else {
             println!("Zboží nenalezeno.");
         }
-    }
+
     println!("Celková cena: {:.2} Kč", total_price);
-}
 
 fn main() {
     let filename = "inventory.json";
