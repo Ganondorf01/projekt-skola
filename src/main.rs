@@ -1,5 +1,5 @@
-
+use tauri::[]
 
 fn main() {
-    
+   
 }
