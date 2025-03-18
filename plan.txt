@@ -2,4 +2,12 @@ velice cool projekt
 
 neco napiseme !
 
-Trida 1:
+projekt strana Max:
+  - Epicky backend projektu, prace na epickych vecech jako rust logicka stranka aplikace :3
+  - Sukne, podkolenky, pivo a parno
+  - Vyzbrojeni rwandskych milic v DRK
+
+projekt strana Tom:
+  - Byt roztomily
+  - Byt hodny femboy
+  - Napsat trosku frontendu :3
