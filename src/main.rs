@@ -38,7 +38,7 @@ impl Supermarket {
 
     fn load_inventory(filename: &str) -> Self {
         let data = fs::read_to_string(filename).unwrap_or_else(|| "{}".to_string());
-        serde_json::from_str(&data).unwrap_orelse(|| Supermarket::new())
+        serde_json::from_str(&data).unwrap_or_else(Supermarket::new())
     }
 }
 
