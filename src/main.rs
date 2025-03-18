@@ -45,11 +45,29 @@ impl Supermarket {
 fn self_service_checkout(supermarket: &Supermarket) {
     let mut total_price = 0.0;
     loop {
-        println!("Zadejte ID zboží (nebo 'konec' pro zaplacení): ");
+        println!("Zadej brasko id predmet (konec pro zaplaceni nebo novy pro pridani noveho predmetu) ");
         let mut id = String::new();
         io::stdin().read_line(&mut id).unwrap();
         let id = id.trim();
+        
+         if id == "novy" {
+            println!("id zbozi");
+            let mut item_id = String::new();
+            io::stdin().read_line(&mut item_id).unwrap();
+            
+            println!("nazev zbozi");
+            let mut item_name = String::new();
+            io::stdin().read_line(&mut item_name).unwrap();
 
+            println!("cena zbozi (v formatu xy.z)");
+            let item_price: f64;
+            io::stdin().read_line(&mut item_price).unwrap();
+
+            supermarket.add_new_item(item_id, item_name, item_price);
+            supermarket.save_inventory(filename);
+        }
+
+       
         if id == "konec" {
             break;
         }
@@ -74,7 +92,6 @@ fn main() {
     let filename = "inventory.json";
     let mut supermarket = Supermarket::load_inventory(filename);
     
-    supermarket.add_new_item("1", "Automobil značky škoda", 690000.0);
     supermarket.save_inventory(filename);
     
     self_service_checkout(&supermarket);
