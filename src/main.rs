@@ -1,9 +1,9 @@
+use eframe::egui;
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use std::fs;
-use std::io;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 struct Goods {
     id: String,
     name: String,
@@ -42,62 +42,98 @@ impl Supermarket {
     }
 }
 
-fn self_service_checkout(supermarket: &mut Supermarket, filename: &str) {
-    let mut total_price = 0.0;
-    loop {
-        println!("Zadej brasko id predmet (konec pro zaplaceni nebo novy pro pridani noveho predmetu) ");
-        let mut id = String::new();
-        io::stdin().read_line(&mut id).unwrap();
-        let id = id.trim();
+struct SupermarketApp {
+    supermarket: Supermarket,
+    filename: String,
+    new_id: String,
+    new_name: String,
+    new_price: String,
+    total_price: f64,
+    cart: Vec<(String, f64)>,
+}
 
-        if id == "novy" {
-            println!("ID zboží:");
-            let mut item_id = String::new();
-            io::stdin().read_line(&mut item_id).unwrap();
-            let item_id = item_id.trim().to_string();
-
-            println!("Název zboží:");
-            let mut item_name = String::new();
-            io::stdin().read_line(&mut item_name).unwrap();
-            let item_name = item_name.trim().to_string();
-
-            println!("Cena zboží (v formátu xy.z):");
-            let mut item_price = String::new();
-            io::stdin().read_line(&mut item_price).unwrap();
-            let item_price: f64 = item_price.trim().parse().unwrap_or(0.0);
-
-            supermarket.add_new_item(&item_id, &item_name, item_price);
-            supermarket.save_inventory(filename);
-            println!("Předmět úspěšně přidán!");
-            continue; 
-        }
-
-        if id == "konec" {
-            break;
-        }
-
-        if let Some(item) = supermarket.inventory.get(id) {
-            println!("Zadejte množství: ");
-            let mut qty = String::new();
-            io::stdin().read_line(&mut qty).unwrap();
-            let qty: f64 = qty.trim().parse().unwrap_or(1.0);
-            
-            let price = qty * item.price_per_unit;
-            total_price += price;
-            println!("Přidáno: {} x {} = {:.2} Kč", qty, item.name, price);
-        } else {
-            println!("Zboží nenalezeno.");
+impl SupermarketApp {
+    fn new(filename: &str) -> Self {
+        let supermarket = Supermarket::load_inventory(filename);
+        SupermarketApp {
+            supermarket,
+            filename: filename.to_string(),
+            new_id: String::new(),
+            new_name: String::new(),
+            new_price: String::new(),
+            total_price: 0.0,
+            cart: Vec::new(),
         }
     }
-    println!("Celková cena: {:.2} Kč", total_price);
 }
 
-fn main() {
-    let filename = "inventory.json";
-    let mut supermarket = Supermarket::load_inventory(filename);
-    
-    supermarket.save_inventory(filename);
-    
-    self_service_checkout(&mut supermarket, filename);
+impl eframe::App for SupermarketApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.heading("Supermarket");
+            
+            ui.horizontal(|ui| {
+                ui.label("ID zboží:");
+                ui.text_edit_singleline(&mut self.new_id);
+            });
+            
+            ui.horizontal(|ui| {
+                ui.label("Název zboží:");
+                ui.text_edit_singleline(&mut self.new_name);
+            });
+            
+            ui.horizontal(|ui| {
+                ui.label("Cena:");
+                ui.text_edit_singleline(&mut self.new_price);
+            });
+            
+            if ui.button("Přidat zboží").clicked() {
+                if let Ok(price) = self.new_price.parse::<f64>() {
+                    self.supermarket.add_new_item(&self.new_id, &self.new_name, price);
+                    self.supermarket.save_inventory(&self.filename);
+                    self.new_id.clear();
+                    self.new_name.clear();
+                    self.new_price.clear();
+                }
+            }
+            
+            ui.separator();
+            ui.heading("Nákupní košík");
+            
+            for (id, qty) in &self.cart {
+                if let Some(item) = self.supermarket.inventory.get(id) {
+                    let price = qty * item.price_per_unit;
+                    ui.label(format!("{} x {} = {:.2} Kč", qty, item.name, price));
+                }
+            }
+            ui.label(format!("Celková cena: {:.2} Kč", self.total_price));
+            
+            ui.separator();
+            ui.heading("Dostupné zboží");
+            for (id, item) in &self.supermarket.inventory {
+                ui.horizontal(|ui| {
+                    ui.label(format!("{} - {} ({:.2} Kč/ks)", id, item.name, item.price_per_unit));
+                    let mut qty_str = String::new();
+                    ui.text_edit_singleline(&mut qty_str);
+                    if ui.button("Přidat do košíku").clicked() {
+                        if let Ok(qty) = qty_str.parse::<f64>() {
+                            self.total_price += qty * item.price_per_unit;
+                            self.cart.push((id.clone(), qty));
+                        }
+                    }
+                });
+            }
+        });
+    }
 }
+
+fn main() -> eframe::Result<()> {
+    let options = eframe::NativeOptions::default();
+    eframe::run_native(
+        "Supermarket GUI",
+        options,
+        Box::new(|_cc| Ok(Box::new(SupermarketApp::new("inventory.json")))),
+    )
+}
+
 
