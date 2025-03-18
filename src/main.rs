@@ -74,8 +74,7 @@ fn main() {
     let filename = "inventory.json";
     let mut supermarket = Supermarket::load_inventory(filename);
     
-    supermarket.add_new_item("123", "Mléko", 20.0);
-    supermarket.add_new_item("456", "Chléb", 30.0);
+    supermarket.add_new_item("1", "Automobil značky škoda", 690000.0);
     supermarket.save_inventory(filename);
     
     self_service_checkout(&supermarket);
