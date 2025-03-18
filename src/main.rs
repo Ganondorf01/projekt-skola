@@ -42,32 +42,36 @@ impl Supermarket {
     }
 }
 
-fn self_service_checkout(supermarket: &Supermarket) {
+fn self_service_checkout(supermarket: &mut Supermarket, filename: &str) {
     let mut total_price = 0.0;
     loop {
         println!("Zadej brasko id predmet (konec pro zaplaceni nebo novy pro pridani noveho predmetu) ");
         let mut id = String::new();
         io::stdin().read_line(&mut id).unwrap();
         let id = id.trim();
-        
-         if id == "novy" {
-            println!("id zbozi");
+
+        if id == "novy" {
+            println!("ID zboží:");
             let mut item_id = String::new();
             io::stdin().read_line(&mut item_id).unwrap();
-            
-            println!("nazev zbozi");
+            let item_id = item_id.trim().to_string();
+
+            println!("Název zboží:");
             let mut item_name = String::new();
             io::stdin().read_line(&mut item_name).unwrap();
+            let item_name = item_name.trim().to_string();
 
-            println!("cena zbozi (v formatu xy.z)");
-            let item_price: f64;
+            println!("Cena zboží (v formátu xy.z):");
+            let mut item_price = String::new();
             io::stdin().read_line(&mut item_price).unwrap();
+            let item_price: f64 = item_price.trim().parse().unwrap_or(0.0);
 
-            supermarket.add_new_item(item_id, item_name, item_price);
+            supermarket.add_new_item(&item_id, &item_name, item_price);
             supermarket.save_inventory(filename);
+            println!("Předmět úspěšně přidán!");
+            continue; 
         }
 
-       
         if id == "konec" {
             break;
         }
@@ -94,6 +98,6 @@ fn main() {
     
     supermarket.save_inventory(filename);
     
-    self_service_checkout(&supermarket);
+    self_service_checkout(&mut supermarket, filename);
 }
 
