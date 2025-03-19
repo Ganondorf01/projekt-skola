@@ -72,17 +72,17 @@ impl eframe::App for SupermarketApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Supermarket");
             
-            ui.horizontal(|ui| {
+            ui.vertical(|ui| {
                 ui.label("ID zboží:");
                 ui.text_edit_singleline(&mut self.new_id);
             });
             
-            ui.horizontal(|ui| {
+            ui.vertical(|ui| {
                 ui.label("Název zboží:");
                 ui.text_edit_singleline(&mut self.new_name);
             });
             
-            ui.horizontal(|ui| {
+            ui.vertical(|ui| {
                 ui.label("Cena:");
                 ui.text_edit_singleline(&mut self.new_price);
             });
