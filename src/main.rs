@@ -50,6 +50,7 @@ struct SupermarketApp {
     new_price: String,
     total_price: f64,
     cart: Vec<(String, f64)>,
+    quantity_inputs: HashMap<String, String>,
 }
 
 impl SupermarketApp {
@@ -63,6 +64,7 @@ impl SupermarketApp {
             new_price: String::new(),
             total_price: 0.0,
             cart: Vec::new(),
+            quantity_inputs: HashMap::new(),
         }
     }
 }
@@ -71,22 +73,22 @@ impl eframe::App for SupermarketApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Supermarket");
-            
+
             ui.vertical(|ui| {
                 ui.label("ID zboží:");
                 ui.text_edit_singleline(&mut self.new_id);
             });
-            
+
             ui.vertical(|ui| {
                 ui.label("Název zboží:");
                 ui.text_edit_singleline(&mut self.new_name);
             });
-            
+
             ui.vertical(|ui| {
                 ui.label("Cena:");
                 ui.text_edit_singleline(&mut self.new_price);
             });
-            
+
             if ui.button("Přidat zboží").clicked() {
                 if let Ok(price) = self.new_price.parse::<f64>() {
                     self.supermarket.add_new_item(&self.new_id, &self.new_name, price);
@@ -96,10 +98,10 @@ impl eframe::App for SupermarketApp {
                     self.new_price.clear();
                 }
             }
-            
+
             ui.separator();
             ui.heading("Nákupní košík");
-            
+
             for (id, qty) in &self.cart {
                 if let Some(item) = self.supermarket.inventory.get(id) {
                     let price = qty * item.price_per_unit;
@@ -107,18 +109,22 @@ impl eframe::App for SupermarketApp {
                 }
             }
             ui.label(format!("Celková cena: {:.2} Kč", self.total_price));
-            
+
             ui.separator();
             ui.heading("Dostupné zboží");
+
             for (id, item) in &self.supermarket.inventory {
                 ui.horizontal(|ui| {
                     ui.label(format!("{} - {} ({:.2} Kč/ks)", id, item.name, item.price_per_unit));
-                    let mut qty_str = String::new();
-                    ui.text_edit_singleline(&mut qty_str);
+
+                    let qty_entry = self.quantity_inputs.entry(id.clone()).or_insert_with(String::new);
+                    ui.text_edit_singleline(qty_entry);
+
                     if ui.button("Přidat do košíku").clicked() {
-                        if let Ok(qty) = qty_str.parse::<f64>() {
+                        if let Ok(qty) = qty_entry.parse::<f64>() {
                             self.total_price += qty * item.price_per_unit;
                             self.cart.push((id.clone(), qty));
+                            qty_entry.clear();
                         }
                     }
                 });
@@ -135,6 +141,4 @@ fn main() -> eframe::Result<()> {
         Box::new(|_cc| Ok(Box::new(SupermarketApp::new("inventory.json")))),
     )
 }
-
-
 
