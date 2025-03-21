@@ -79,85 +79,75 @@ impl SupermarketApp {
 
 impl eframe::App for SupermarketApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Supermarket");
-
-            ui.vertical(|ui| {
-                ui.label("ID zboží:");
-                ui.text_edit_singleline(&mut self.new_id);
-            });
-
-            ui.vertical(|ui| {
-                ui.label("Název zboží:");
-                ui.text_edit_singleline(&mut self.new_name);
-            });
-
-            ui.vertical(|ui| {
-                ui.label("Cena:");
-                ui.text_edit_singleline(&mut self.new_price);
-            });
-
-            ui.checkbox(&mut self.new_requires_id, "Vyžaduje OP");
-
-            if ui.button("Přidat zboží").clicked() {
-                if let Ok(price) = self.new_price.parse::<f64>() {
-                    self.supermarket.add_new_item(&self.new_id, &self.new_name, price, self.new_requires_id);
-                    self.supermarket.save_inventory(&self.filename);
-                    self.new_id.clear();
-                    self.new_name.clear();
-                    self.new_price.clear();
-                    self.new_requires_id = false;
-                }
-            }
-
-            ui.separator();
-            ui.heading("Nákupní košík");
-
-            let mut requires_id_check = false;
-            for (id, qty) in &self.cart {
-                if let Some(item) = self.supermarket.inventory.get(id) {
-                    let price = qty * item.price_per_unit;
-                    ui.label(format!("{} x {} = {:.2} Kč", qty, item.name, price));
-                    if item.requires_id_check {
-                        requires_id_check = true;
+        egui::CentralPanel::default().frame(egui::Frame::default().fill(egui::Color32::WHITE)).show(ctx, |ui| {
+            ui.vertical_centered(|ui| {
+                ui.heading("Supermarket");
+                ui.separator();
+                ui.heading("Přidání nového zboží");
+                
+                ui.label("ID zboží:").strong();
+                ui.text_edit_singleline(&mut self.new_id).text_style(egui::TextStyle::Heading);
+                ui.label("Název zboží:").strong();
+                ui.text_edit_singleline(&mut self.new_name).text_style(egui::TextStyle::Heading);
+                ui.label("Cena:").strong();
+                ui.text_edit_singleline(&mut self.new_price).text_style(egui::TextStyle::Heading);
+                ui.checkbox(&mut self.new_requires_id, "Vyžaduje OP");
+                
+                if ui.button("Přidat zboží").clicked() {
+                    if let Ok(price) = self.new_price.parse::<f64>() {
+                        self.supermarket.add_new_item(&self.new_id, &self.new_name, price, self.new_requires_id);
+                        self.supermarket.save_inventory(&self.filename);
+                        self.new_id.clear();
+                        self.new_name.clear();
+                        self.new_price.clear();
+                        self.new_requires_id = false;
                     }
                 }
-            }
-            ui.label(format!("Celková cena: {:.2} Kč", self.total_price));
-
-            if requires_id_check {
-                ui.label("Některé položky vyžadují kontrolu OP!");
-            }
-
-            ui.separator();
-            ui.label("Zaplacená částka:");
-            ui.text_edit_singleline(&mut self.amount_paid);
-            if ui.button("Vypočítat vrácenou částku").clicked() {
-                if let Ok(amount_paid) = self.amount_paid.parse::<f64>() {
-                    self.change_due = amount_paid - self.total_price;
-                }
-            }
-            ui.label(format!("Vrácená částka: {:.2} Kč", self.change_due));
-
-            ui.separator();
-            ui.heading("Dostupné zboží");
-
-            for (id, item) in &self.supermarket.inventory {
-                ui.horizontal(|ui| {
-                    ui.label(format!("{} - {} ({:.2} Kč/ks){}", id, item.name, item.price_per_unit, if item.requires_id_check { " 200+!!" } else { "" }));
-
-                    let qty_entry = self.quantity_inputs.entry(id.clone()).or_insert_with(String::new);
-                    ui.text_edit_singleline(qty_entry);
-
-                    if ui.button("Přidat do košíku").clicked() {
-                        if let Ok(qty) = qty_entry.parse::<f64>() {
-                            self.total_price += qty * item.price_per_unit;
-                            self.cart.push((id.clone(), qty));
-                            qty_entry.clear();
+                
+                ui.separator();
+                ui.heading("Nákupní košík");
+                
+                let mut requires_id_check = false;
+                self.total_price = 0.0;
+                for (id, qty) in &self.cart {
+                    if let Some(item) = self.supermarket.inventory.get(id) {
+                        let price = qty * item.price_per_unit;
+                        self.total_price += price;
+                        ui.label(format!("{} x {} = {:.2} Kč", qty, item.name, price)).strong();
+                        if item.requires_id_check {
+                            requires_id_check = true;
                         }
                     }
-                });
-            }
+                }
+                ui.label(format!("Celková cena: {:.2} Kč", self.total_price)).strong();
+                
+                if requires_id_check {
+                    ui.colored_label(egui::Color32::RED, "Některé položky vyžadují kontrolu OP!").strong();
+                }
+                
+                if ui.button("Vymazat košík").clicked() {
+                    self.cart.clear();
+                    self.total_price = 0.0;
+                    self.amount_paid.clear();
+                    self.change_due = 0.0;
+                }
+                
+                ui.separator();
+                ui.heading("Dostupné zboží");
+                
+                for (id, item) in &self.supermarket.inventory {
+                    ui.horizontal(|ui| {
+                        ui.label(format!("{} - {} ({:.2} Kč/ks){}", id, item.name, item.price_per_unit, if item.requires_id_check { " *Vyžaduje OP*" } else { "" })).strong();
+                        let qty_entry = self.quantity_inputs.entry(id.clone()).or_insert_with(String::new);
+                        ui.text_edit_singleline(qty_entry).text_style(egui::TextStyle::Heading);
+                        if ui.button("Přidat do košíku").clicked() {
+                            if let Ok(qty) = qty_entry.parse::<f64>() {
+                                self.cart.push((id.clone(), qty));
+                            }
+                        }
+                    });
+                }
+            });
         });
     }
 }
