@@ -81,19 +81,19 @@ impl eframe::App for SupermarketApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().frame(egui::Frame::default().fill(egui::Color32::WHITE)).show(ctx, |ui| {
             ui.vertical_centered(|ui| {
-                ui.heading("Supermarket");
+                ui.heading("tamanaska trznice simulator! ");
                 ui.separator();
-                ui.heading("Přidání nového zboží");
+                ui.heading("dodej to tam kokotere");
                 
-                ui.label("ID zboží:").strong();
-                ui.text_edit_singleline(&mut self.new_id).text_style(egui::TextStyle::Heading);
-                ui.label("Název zboží:").strong();
-                ui.text_edit_singleline(&mut self.new_name).text_style(egui::TextStyle::Heading);
-                ui.label("Cena:").strong();
-                ui.text_edit_singleline(&mut self.new_price).text_style(egui::TextStyle::Heading);
-                ui.checkbox(&mut self.new_requires_id, "Vyžaduje OP");
+                ui.label("crackhead numbr");
+                ui.text_edit_singleline(&mut self.new_id);
+                ui.label("jaky crack?");
+                ui.text_edit_singleline(&mut self.new_name);
+                ui.label("dluznicka listina:");
+                ui.text_edit_singleline(&mut self.new_price);
+                ui.checkbox(&mut self.new_requires_id, "more neni ti 18?");
                 
-                if ui.button("Přidat zboží").clicked() {
+                if ui.button("dodas mi parno?").clicked() {
                     if let Ok(price) = self.new_price.parse::<f64>() {
                         self.supermarket.add_new_item(&self.new_id, &self.new_name, price, self.new_requires_id);
                         self.supermarket.save_inventory(&self.filename);
@@ -113,19 +113,19 @@ impl eframe::App for SupermarketApp {
                     if let Some(item) = self.supermarket.inventory.get(id) {
                         let price = qty * item.price_per_unit;
                         self.total_price += price;
-                        ui.label(format!("{} x {} = {:.2} Kč", qty, item.name, price)).strong();
+                        ui.label(format!("{} x {} = {:.2} Kč", qty, item.name, price));
                         if item.requires_id_check {
                             requires_id_check = true;
                         }
                     }
                 }
-                ui.label(format!("Celková cena: {:.2} Kč", self.total_price)).strong();
+                ui.label(format!("Celková cena: {:.2} Kč", self.total_price));
                 
                 if requires_id_check {
-                    ui.colored_label(egui::Color32::RED, "Některé položky vyžadují kontrolu OP!").strong();
+                    ui.colored_label(egui::Color32::RED, "pico tomu curakovi bude 18?");
                 }
                 
-                if ui.button("Vymazat košík").clicked() {
+                if ui.button("typico vyhod to z kosiku a dej mi cash").clicked() {
                     self.cart.clear();
                     self.total_price = 0.0;
                     self.amount_paid.clear();
@@ -133,13 +133,13 @@ impl eframe::App for SupermarketApp {
                 }
                 
                 ui.separator();
-                ui.heading("Dostupné zboží");
+                ui.heading("takze co tu mame chlapiku?");
                 
                 for (id, item) in &self.supermarket.inventory {
                     ui.horizontal(|ui| {
-                        ui.label(format!("{} - {} ({:.2} Kč/ks){}", id, item.name, item.price_per_unit, if item.requires_id_check { " *Vyžaduje OP*" } else { "" })).strong();
+                        ui.label(format!("{} - {} ({:.2} Kč/ks){}", id, item.name, item.price_per_unit, if item.requires_id_check { " *a obcanka by nebyla?*" } else { "" }));
                         let qty_entry = self.quantity_inputs.entry(id.clone()).or_insert_with(String::new);
-                        ui.text_edit_singleline(qty_entry).text_style(egui::TextStyle::Heading);
+                        ui.text_edit_singleline(qty_entry).text_style();
                         if ui.button("Přidat do košíku").clicked() {
                             if let Ok(qty) = qty_entry.parse::<f64>() {
                                 self.cart.push((id.clone(), qty));
