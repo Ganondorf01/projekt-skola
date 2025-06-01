@@ -105,7 +105,7 @@ impl eframe::App for SupermarketApp {
                 }
                 
                 ui.separator();
-                ui.heading("Nákupní košík");
+                ui.heading("loot");
                 
                 let mut requires_id_check = false;
                 self.total_price = 0.0;
@@ -119,7 +119,7 @@ impl eframe::App for SupermarketApp {
                         }
                     }
                 }
-                ui.label(format!("Celková cena: {:.2} Kč", self.total_price));
+                ui.label(format!("dej mi: {:.2} Kč", self.total_price));
                 
                 if requires_id_check {
                     ui.colored_label(egui::Color32::RED, "pico tomu curakovi bude 18?");
@@ -139,8 +139,8 @@ impl eframe::App for SupermarketApp {
                     ui.horizontal(|ui| {
                         ui.label(format!("{} - {} ({:.2} Kč/ks){}", id, item.name, item.price_per_unit, if item.requires_id_check { " *a obcanka by nebyla?*" } else { "" }));
                         let qty_entry = self.quantity_inputs.entry(id.clone()).or_insert_with(String::new);
-                        ui.text_edit_singleline(qty_entry).text_style();
-                        if ui.button("Přidat do košíku").clicked() {
+                        ui.text_edit_singleline(qty_entry);
+                        if ui.button("dej to tam parchante (zadny shoplifting)").clicked() {
                             if let Ok(qty) = qty_entry.parse::<f64>() {
                                 self.cart.push((id.clone(), qty));
                             }
